@@ -1,0 +1,95 @@
+name: Build, Test & Release
+
+on:
+  push
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      new_tag: ${{ steps.bump_version.outputs.new_tag }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          git fetch --tags
+          last_tag=$(git tag --sort=-creatordate | head -n 1 || echo "0.0.0")
+          if [ -z "$last_tag" ]; then
+            last_tag="0.0.0"
+          fi
+          echo "last_tag=$last_tag" >> $GITHUB_ENV
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          IFS='.' read -r major minor patch <<< "${last_tag}"
+          patch=$((patch+1))
+          new_tag="$major.$minor.$patch"
+          echo "new_tag=$new_tag" >> $GITHUB_ENV
+          echo "new_tag=$new_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.new_tag }}
+          name: Release ${{ env.new_tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure
+        run: cmake -G "Ninja" -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run
+        run: ./build/LAB3
+
+      - name: Package (Linux)
+        run: cmake --install build --prefix package && cpack -G DEB --config build/CPackConfig.cmake
+
+      - name: Upload Linux package
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-release.outputs.new_tag }}
+          files: LAB3-*.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure
+        run: cmake -G "Ninja" -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Run
+        run: build/LAB3.exe
+
+      - name: Package (Windows)
+        run: cmake --install build --prefix package && cpack -G ZIP --config build/CPackConfig.cmake
+
+      - name: Upload Windows package
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create-release.outputs.new_tag }}
+          files: LAB3-*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
