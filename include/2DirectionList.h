@@ -18,7 +18,7 @@ private:
     
 public:
     DoubleList() : Head(nullptr), length(0) {}
-    DoubleList(DoubleList&& other) noexcept : Head(other.Head), length(other.length) {
+    DoubleList(DoubleList&& other) : Head(other.Head), length(other.length) {
         other.Head = nullptr;
         other.length = 0;
     }
@@ -30,7 +30,7 @@ public:
         }
     }
 
-    DoubleList& operator=(DoubleList&& other) noexcept{
+    DoubleList& operator=(DoubleList&& other) {
         if (this != &other)
         {
             while (Head)

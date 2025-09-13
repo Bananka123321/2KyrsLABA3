@@ -17,7 +17,7 @@ private:
     
 public:
     SingleList() : Head(nullptr), length(0) {}
-    SingleList(SingleList&& other) noexcept : Head(other.Head), length(other.length) {
+    SingleList(SingleList&& other) : Head(other.Head), length(other.length) {
         other.Head = nullptr;
         other.length = 0;
     }
@@ -28,7 +28,7 @@ public:
             delete tmp;
         }
     }
-    SingleList& operator=(SingleList&& other) noexcept{
+    SingleList& operator=(SingleList&& other) {
         if (this != &other)
         {
             while (Head)
@@ -132,7 +132,7 @@ public:
         length--;
     }
 
-     class Iterator {
+    class Iterator {
         OneNode* ptr;
     public:
         Iterator(OneNode* p) : ptr(p) {}

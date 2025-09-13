@@ -4,7 +4,6 @@
 
 template<typename T>
 class MyVector {
-
 private:
     T* Data;
     size_t capacity, length;
@@ -100,3 +99,4 @@ public:
     Iterator begin() {return Iterator(Data);}
     Iterator end() {return Iterator(Data + length);}
 };
+
