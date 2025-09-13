@@ -20,7 +20,7 @@ private:
 public:
     
     MyVector() : Data(new T[1]), capacity(1), length(0){}
-    MyVector(MyVector&& other) noexcept : Data(other.Data), capacity(other.capacity), length(other.length) {
+    MyVector(MyVector&& other) : Data(other.Data), capacity(other.capacity), length(other.length) {
         other.Data = nullptr;
         other.capacity = 0;
         other.length = 0;
@@ -28,7 +28,7 @@ public:
 
     ~MyVector() {delete[] Data;}
 
-    MyVector& operator=(MyVector&& other) noexcept {
+    MyVector& operator=(MyVector&& other) {
     if (this != &other) {
         delete[] Data;
         Data = other.Data;
